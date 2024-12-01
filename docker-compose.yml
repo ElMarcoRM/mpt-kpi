@@ -1,8 +1,9 @@
 services:
   db:
     image: mysql:9.0.1
-    container_name: ${SERVICE}_dev_db
+    container_name: ${SERVICE}_db
     restart: always
+    env_file: .env
     environment:
       MYSQL_USER: $DATABASE_USER
       MYSQL_PASSWORD: $DATABASE_PASSWORD
@@ -10,32 +11,31 @@ services:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - mpt-kpi-database:/var/lib/mysql
-    ports:
-      - ${DATABASE_PORT}:${DATABASE_PORT}
 
   frontend:
-    container_name: ${SERVICE}_dev_frontend
+    container_name: ${SERVICE}_frontend
+    platform: linux/amd64
+    restart: always
     env_file: .env
     build:
       context: ./frontend/
-      dockerfile: dev.Dockerfile
-    volumes:
-      - ./frontend:/app
     ports:
-      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+      - 127.0.0.1:${FRONTEND_PORT}:${FRONTEND_PORT}
 
   backend:
-    container_name: ${SERVICE}_dev_backend
+    container_name: ${SERVICE}_backend
+    platform: linux/amd64
+    restart: always
     env_file: .env
     build:
       context: ./backend/
-      dockerfile: dev.Dockerfile
     environment:
-      - DEBUG=1
-    volumes:
-      - ./backend:/app
-    ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
+      - DATABASE_PORT
+      - FRONTEND_PORT
+      - BACKEND_PORT
+      - DATABASE_USER
+      - DATABASE_NAME
+      - DATABASE_PASSWORD
     depends_on:
       - db
 
